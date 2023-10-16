@@ -18,7 +18,7 @@
     "require": {
         "guzzlehttp/guzzle": "7.9.x-dev",
         "firebase/php-jwt": "dev-main",
-        "phpseclib/phpseclib": "dev-master",
-        "otpless/otpless-auth": "1.2.0"
+        "phpseclib/phpseclib": "dev-master"
+        
     }
 }
