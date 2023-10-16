@@ -1,8 +1,8 @@
 <?php return array(
     'root' => array(
         'name' => 'otpless/otpless-auth-sdk',
-        'pretty_version' => '1.5.0',
-        'version' => '1.5.0.0',
+        'pretty_version' => '1.6.0',
+        'version' => '1.6.0.0',
         'reference' => NULL,
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
@@ -49,8 +49,8 @@
             'dev_requirement' => false,
         ),
         'otpless/otpless-auth-sdk' => array(
-            'pretty_version' => '1.5.0',
-            'version' => '1.5.0.0',
+            'pretty_version' => '1.6.0',
+            'version' => '1.6.0.0',
             'reference' => NULL,
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
