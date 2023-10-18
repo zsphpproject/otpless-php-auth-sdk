@@ -3,8 +3,8 @@
     "description": "SDK for Backend PHP SDK for resolving idToken and more.",
     "type": "library",
     "license": "MIT",
-    "vendor/package": "2.1.0",
-    "version": "2.1.0",
+    "vendor/package": "1.6.0",
+    "version": "1.6.0",
     "autoload": {
         "psr-4": {
             "Otpless\\OtplessAuth\\": "src/"
