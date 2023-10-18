@@ -1,4 +1,5 @@
 <?php
+namespace Otpless\OtplessAuth;
 
 require '../vendor/autoload.php';
 
