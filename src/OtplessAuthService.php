@@ -100,9 +100,18 @@ class OtplessAuthService
                 $decodedDataArray['authentication_details'] = json_decode($decodedDataArray['authentication_details']);
             }
 
-            $userDetail = json_decode(json_encode($decodedDataArray), false);
+            $res = json_decode(json_encode($decodedDataArray), false);
 
+            
+            $userDetail = new UserDetail();
             $userDetail->success = true;
+            $userDetail->auth_time = $res->auth_time;
+            $userDetail->name = $res->name;
+            $userDetail->phone_number = $res->phone_number;
+            $userDetail->email = $res->email;
+            $userDetail->country_code = $res->country_code;
+
+            $userDetail->national_phone_number = $res->national_phone_number;
 
             return $userDetail;
         } catch (Exception $e) {
