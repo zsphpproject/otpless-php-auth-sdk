@@ -1,4 +1,5 @@
 <?php
+
 namespace Otpless\OtplessAuth;
 
 require '../vendor/autoload.php';
@@ -67,6 +68,49 @@ class OtplessAuthService
         }
     }
 
+
+    public function verifyToken($token, $clientId, $clientSecret)
+    {
+
+        try {
+            $client = new Client();
+            $tokenEndpoint = 'https://oidc.otpless.app/auth/userInfo';
+
+            $response = $client->post($tokenEndpoint, [
+                'form_params' => [
+                    'token' => '75b56395ac284b40b5df5d15d6477519',
+                    'client_id' => 'kp79hlri',
+                    'client_secret' => '4djabbfg2bl5oxqx',
+                ]
+            ]);
+
+            $responseBody = $response->getBody()->getContents();
+            $data = json_decode($responseBody, true);
+         
+
+            $userDetail = new UserDetail();
+            $userDetail->success = true;
+            $userDetail->auth_time = $data['auth_time'];
+            $userDetail->name = $data['name'];
+            $userDetail->phone_number = $data['phone_number'];
+            $userDetail->email = $data['email'];
+            $userDetail->country_code = $data['country_code'];
+            $userDetail->national_phone_number = $data['national_phone_number'];
+
+            return $userDetail;
+
+        } catch (\Exception  $e) {
+            $userDetail = new UserDetail();
+            $userDetail->success = false;
+            $userDetail->errorMsg = "Something went wrong please try again";
+
+            $userDetailArray = (array) $userDetail;
+
+            return array_filter($userDetailArray, function ($value) {
+                return $value !== null;
+            });
+        }
+    }
     private function getConfig($client)
     {
         $response = $client->get('https://otpless.com/.well-known/openid-configuration');
@@ -140,6 +184,9 @@ class OtplessAuthService
 
         return openssl_pkey_get_public($publicKey);
     }
-    
 }
 
+
+$otplessAuthService = new OtplessAuthService();
+$response = $otplessAuthService->verifyToken("75b56395ac284b40b5df5d15d6477519", "ef0kpz5g", "ijx4ksmvtozx314n");
+print_r($response);
