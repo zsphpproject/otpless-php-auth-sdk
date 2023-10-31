@@ -185,8 +185,3 @@ class OtplessAuthService
         return openssl_pkey_get_public($publicKey);
     }
 }
-
-
-$otplessAuthService = new OtplessAuthService();
-$response = $otplessAuthService->verifyToken("75b56395ac284b40b5df5d15d6477519", "ef0kpz5g", "ijx4ksmvtozx314n");
-print_r($response);
