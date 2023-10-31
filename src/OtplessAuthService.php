@@ -78,9 +78,9 @@ class OtplessAuthService
 
             $response = $client->post($tokenEndpoint, [
                 'form_params' => [
-                    'token' => '75b56395ac284b40b5df5d15d6477519',
-                    'client_id' => 'kp79hlri',
-                    'client_secret' => '4djabbfg2bl5oxqx',
+                    'token' => $token,
+                    'client_id' => $clientId,
+                    'client_secret' => $clientSecret,
                 ]
             ]);
 
