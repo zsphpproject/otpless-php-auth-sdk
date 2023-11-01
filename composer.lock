@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9e130f706fd1b7a2eda0b497e882aca8",
+    "content-hash": "07de7318e0872fd91d603118bf57db2e",
     "packages": [
         {
             "name": "firebase/php-jwt",
@@ -468,12 +468,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpseclib/phpseclib.git",
-                "reference": "f403ff98d3df8472894bef6d76bd2f3a59943d10"
+                "reference": "93417928ccdf182a136f0386ce56a78f04cabfe5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpseclib/phpseclib/zipball/f403ff98d3df8472894bef6d76bd2f3a59943d10",
-                "reference": "f403ff98d3df8472894bef6d76bd2f3a59943d10",
+                "url": "https://api.github.com/repos/phpseclib/phpseclib/zipball/93417928ccdf182a136f0386ce56a78f04cabfe5",
+                "reference": "93417928ccdf182a136f0386ce56a78f04cabfe5",
                 "shasum": ""
             },
             "require": {
@@ -580,7 +580,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-10-07T23:32:54+00:00"
+            "time": "2023-10-31T14:51:13+00:00"
         },
         {
             "name": "psr/http-client",

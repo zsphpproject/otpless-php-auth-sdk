@@ -26,7 +26,7 @@ class ComposerStaticInit39bf7a5d2763f567cc6a9a5e0ad6b818
         ),
         'O' => 
         array (
-            'Otpless\\OtplessAuth\\' => 20,
+            'Otpless\\' => 8,
         ),
         'G' => 
         array (
@@ -58,7 +58,7 @@ class ComposerStaticInit39bf7a5d2763f567cc6a9a5e0ad6b818
         array (
             0 => __DIR__ . '/..' . '/paragonie/constant_time_encoding/src',
         ),
-        'Otpless\\OtplessAuth\\' => 
+        'Otpless\\' => 
         array (
             0 => __DIR__ . '/../..' . '/src',
         ),

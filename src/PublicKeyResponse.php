@@ -1,5 +1,5 @@
 <?php
-namespace Otpless\OtplessAuth;
+namespace Otpless;
 
 class PublicKeyResponse
 {

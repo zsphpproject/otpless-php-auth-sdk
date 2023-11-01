@@ -127,7 +127,7 @@ Object Name: UserDetail
 
 require '../vendor/autoload.php';
 
-use Otpless\OtplessAuth\OTPLessAuth; 
+use Otpless\OTPLessAuth; 
 
 // Your ID token to decode
 $token = 'your token here';

@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'otpless/otpless-auth-sdk',
-        'pretty_version' => '1.6.0',
-        'version' => '1.6.0.0',
-        'reference' => NULL,
+        'pretty_version' => 'dev-main',
+        'version' => 'dev-main',
+        'reference' => 'b026b819f2769bd10942667f653efadd123738b8',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -49,9 +49,9 @@
             'dev_requirement' => false,
         ),
         'otpless/otpless-auth-sdk' => array(
-            'pretty_version' => '1.6.0',
-            'version' => '1.6.0.0',
-            'reference' => NULL,
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
+            'reference' => 'b026b819f2769bd10942667f653efadd123738b8',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -69,7 +69,7 @@
         'phpseclib/phpseclib' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => 'f403ff98d3df8472894bef6d76bd2f3a59943d10',
+            'reference' => '93417928ccdf182a136f0386ce56a78f04cabfe5',
             'type' => 'library',
             'install_path' => __DIR__ . '/../phpseclib/phpseclib',
             'aliases' => array(

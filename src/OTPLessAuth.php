@@ -1,12 +1,12 @@
 <?php
 
-namespace Otpless\OtplessAuth;
+namespace Otpless;
 
 require '../vendor/autoload.php';
 
-use Otpless\OtplessAuth\OIDCMasterConfig;
-use Otpless\OtplessAuth\PublicKeyResponse;
-use Otpless\OtplessAuth\UserDetail;
+use Otpless\OIDCMasterConfig;
+use Otpless\PublicKeyResponse;
+use Otpless\UserDetail;
 
 use \Firebase\JWT\Key;
 
@@ -90,12 +90,12 @@ class OTPLessAuth
 
             $userDetail = new UserDetail();
             $userDetail->success = true;
-            $userDetail->auth_time = $data['auth_time'];
-            $userDetail->name = $data['name'];
-            $userDetail->phone_number = $data['phone_number'];
-            $userDetail->email = $data['email'];
-            $userDetail->country_code = $data['country_code'];
-            $userDetail->national_phone_number = $data['national_phone_number'];
+            $userDetail->auth_time = $data['auth_time']?? null;;
+            $userDetail->name = $data['name'] ?? null;;
+            $userDetail->phone_number = $data['phone_number']?? null;;
+            $userDetail->email = $data['email']?? null;;
+            $userDetail->country_code = $data['country_code']?? null;;
+            $userDetail->national_phone_number = $data['national_phone_number']?? null;;
 
             return json_encode($userDetail);
         } catch (\Exception  $e) {
@@ -149,11 +149,11 @@ class OTPLessAuth
 
             $userDetail = new UserDetail();
             $userDetail->success = true;
-            $userDetail->auth_time = $res->auth_time;
-            $userDetail->name = $res->name;
-            $userDetail->phone_number = $res->phone_number;
-            $userDetail->email = $res->email;
-            $userDetail->country_code = $res->country_code;
+            $userDetail->auth_time = $res->auth_time?? null;
+            $userDetail->name = $res->name?? null;;
+            $userDetail->phone_number = $res->phone_number?? null;;
+            $userDetail->email = $res->email?? null;;
+            $userDetail->country_code = $res->country_code?? null;;
 
             $userDetail->national_phone_number = $res->national_phone_number;
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Otpless\OtplessAuth;
+namespace Otpless;
 
 class OIDCMasterConfig
 {
