@@ -15,7 +15,7 @@ use Firebase\JWT\JWT;
 use phpseclib3\Crypt\PublicKeyLoader;
 use phpseclib3\Math\BigInteger;
 
-class OtplessAuthService
+class OTPLessAuth
 {
     public function decodeIdToken($idToken)
     {
@@ -26,7 +26,7 @@ class OtplessAuthService
 
         $response = $this->decodeJWT($keyResponse['n'], $keyResponse['e'], $idToken);
 
-        return $response;
+        return json_encode($response);
     }
 
     public function verifyCode($code, $clientId, $clientSecret)
@@ -54,7 +54,7 @@ class OtplessAuthService
 
             $response = $this->decodeJWT($keyResponse['n'], $keyResponse['e'], $data['id_token']);
 
-            return $response;
+            return json_encode($response);
         } catch (\Exception  $e) {
             $userDetail = new UserDetail();
             $userDetail->success = false;
@@ -62,9 +62,9 @@ class OtplessAuthService
 
             $userDetailArray = (array) $userDetail;
 
-            return array_filter($userDetailArray, function ($value) {
+            return json_encode(array_filter($userDetailArray, function ($value) {
                 return $value !== null;
-            });
+            }));
         }
     }
 
@@ -86,7 +86,7 @@ class OtplessAuthService
 
             $responseBody = $response->getBody()->getContents();
             $data = json_decode($responseBody, true);
-         
+
 
             $userDetail = new UserDetail();
             $userDetail->success = true;
@@ -97,8 +97,7 @@ class OtplessAuthService
             $userDetail->country_code = $data['country_code'];
             $userDetail->national_phone_number = $data['national_phone_number'];
 
-            return $userDetail;
-
+            return json_encode($userDetail);
         } catch (\Exception  $e) {
             $userDetail = new UserDetail();
             $userDetail->success = false;
@@ -106,9 +105,9 @@ class OtplessAuthService
 
             $userDetailArray = (array) $userDetail;
 
-            return array_filter($userDetailArray, function ($value) {
+            return json_encode(array_filter($userDetailArray, function ($value) {
                 return $value !== null;
-            });
+            }));
         }
     }
     private function getConfig($client)
@@ -147,7 +146,7 @@ class OtplessAuthService
 
             $res = json_decode(json_encode($decodedDataArray), false);
 
-            
+
             $userDetail = new UserDetail();
             $userDetail->success = true;
             $userDetail->auth_time = $res->auth_time;
