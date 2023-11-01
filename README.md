@@ -120,3 +120,23 @@ Object Name: UserDetail
 ```
 
 ---
+
+### Example of usage
+
+```php
+
+require '../vendor/autoload.php';
+
+use Otpless\OtplessAuth\OTPLessAuth; 
+
+// Your ID token to decode
+$token = 'your token here';
+
+$clientId = 'your client id here';
+$clientSecret = 'your client secret here';
+// Initialize the library class
+$auth = new OtplessAuth(); 
+
+
+$auth->verifyToken($token,$clientId,$clientSecret);
+```
