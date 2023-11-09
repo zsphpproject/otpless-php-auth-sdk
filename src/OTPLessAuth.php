@@ -233,7 +233,3 @@ class OTPLessAuth
         return openssl_pkey_get_public($publicKey);
     }
 }
-
-$auth = new OTPLessAuth();
-$data = $auth->generateMagicLink("919428407972","","kp79hlri","4djabbfg2bl5oxqx",null);
-print_r($data);
