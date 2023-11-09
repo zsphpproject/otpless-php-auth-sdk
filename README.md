@@ -1,4 +1,4 @@
-# Merchant Integration Documentation(Backend Python Auth SDK)
+# Merchant Integration Documentation(Backend PHP Auth SDK)
 
 ---
 
@@ -120,6 +120,38 @@ Object Name: UserDetail
 ```
 
 ---
+
+> ### 4. Generate Magic link
+
+---
+
+The Authorization Endpoint initiates the authentication process by sending a `magic link` to the user's WhatsApp or email, based on the provided contact information. This link is used to verify the identity of the user. Upon the user's action on this link, they are redirected to the specified URI with an authorization code included in the redirection.
+
+##### Method Signature:
+
+```php
+generateMagicLink(mobile_number, email, client_id, client_secret,redirect_uri)
+```
+
+#### Method Params:
+
+| Params        | Data type | Mandatory | Constraints           | Remarks                                                                                               |
+| ------------- | --------- | --------- | --------------------- | ----------------------------------------------------------------------------------------------------- |
+| mobile_number | String    | false     | At least one required | The user's mobile number for authentication in the format: country code + number (e.g., 91XXXXXXXXXX) |
+| email         | String    | false     | At least one required | The user's email address for authentication.                                                          |
+| redirect_uri  | String    | true      |                       | The URL to which the user will be redirected after authentication. This should be URL-encoded         |
+| clientId      | String    | true      |                       | Your OTPLess `Client Id`                                                                              |
+| clientSecret  | String    | true      |                       | Your OTPLess `Client Secret`                                                                          |
+
+#### Return
+
+Return:
+Object Name: RquestIds
+
+```json
+{"requestIds":[{"type":"MOBILE","value":"ac48690347c24c0b8b54270590392b2a"}],"success":true}
+```
+
 
 ### Example of usage
 

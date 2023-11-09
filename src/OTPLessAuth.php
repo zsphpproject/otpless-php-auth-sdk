@@ -4,9 +4,11 @@ namespace Otpless;
 
 require '../vendor/autoload.php';
 
+use Exception;
 use Otpless\OIDCMasterConfig;
 use Otpless\PublicKeyResponse;
 use Otpless\UserDetail;
+use Otpless\MagicLinkTokens;
 
 use \Firebase\JWT\Key;
 
@@ -90,15 +92,62 @@ class OTPLessAuth
 
             $userDetail = new UserDetail();
             $userDetail->success = true;
-            $userDetail->auth_time = $data['auth_time']?? null;;
+            $userDetail->auth_time = $data['auth_time'] ?? null;;
             $userDetail->name = $data['name'] ?? null;;
-            $userDetail->phone_number = $data['phone_number']?? null;;
-            $userDetail->email = $data['email']?? null;;
-            $userDetail->country_code = $data['country_code']?? null;;
-            $userDetail->national_phone_number = $data['national_phone_number']?? null;;
+            $userDetail->phone_number = $data['phone_number'] ?? null;;
+            $userDetail->email = $data['email'] ?? null;;
+            $userDetail->country_code = $data['country_code'] ?? null;;
+            $userDetail->national_phone_number = $data['national_phone_number'] ?? null;;
 
             return json_encode($userDetail);
         } catch (\Exception  $e) {
+            $userDetail = new UserDetail();
+            $userDetail->success = false;
+            $userDetail->errorMsg = "Something went wrong please try again";
+
+            $userDetailArray = (array) $userDetail;
+
+            return json_encode(array_filter($userDetailArray, function ($value) {
+                return $value !== null;
+            }));
+        }
+    }
+
+
+    public function generateMagicLink($mobile, $email, $clientId, $clientSecret, $redirectURI)
+    {
+        try {
+            $client = new Client();
+            $baseURL = "https://oidc.otpless.app/auth/v1/authorize";
+            $queryParams = array(
+                "client_id" => $clientId,
+                "client_secret" => $clientSecret
+            );
+
+            if (!empty($email)) {
+                $queryParams["email"] = $email;
+            }
+
+            if (!empty($mobile)) {
+                $queryParams["mobile_number"] = $mobile;
+            }
+
+            if (!empty($redirectURI)) {
+                $queryParams["redirect_uri"] = $redirectURI;
+            }
+
+            $queryString = http_build_query($queryParams);
+            $finalURL = $baseURL . '?' . $queryString;
+            $response = $client->get($finalURL);
+
+            $response = $client->get($finalURL);
+            $responseBody = $response->getBody()->getContents();
+            $responseData = json_decode($responseBody, true);
+
+
+            $magicLinkTokens = new MagicLinkTokens($responseData);
+            return json_encode($magicLinkTokens);
+        } catch (\Exception $e) {
             $userDetail = new UserDetail();
             $userDetail->success = false;
             $userDetail->errorMsg = "Something went wrong please try again";
@@ -149,11 +198,11 @@ class OTPLessAuth
 
             $userDetail = new UserDetail();
             $userDetail->success = true;
-            $userDetail->auth_time = $res->auth_time?? null;
-            $userDetail->name = $res->name?? null;;
-            $userDetail->phone_number = $res->phone_number?? null;;
-            $userDetail->email = $res->email?? null;;
-            $userDetail->country_code = $res->country_code?? null;;
+            $userDetail->auth_time = $res->auth_time ?? null;
+            $userDetail->name = $res->name ?? null;;
+            $userDetail->phone_number = $res->phone_number ?? null;;
+            $userDetail->email = $res->email ?? null;;
+            $userDetail->country_code = $res->country_code ?? null;;
 
             $userDetail->national_phone_number = $res->national_phone_number;
 
@@ -184,3 +233,7 @@ class OTPLessAuth
         return openssl_pkey_get_public($publicKey);
     }
 }
+
+$auth = new OTPLessAuth();
+$data = $auth->generateMagicLink("919428407972","","kp79hlri","4djabbfg2bl5oxqx",null);
+print_r($data);
