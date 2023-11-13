@@ -1,5 +1,5 @@
 {
-    "name": "otpless/otpless-auth-sdk",
+    "name": "zsgogo/otpless-auth-sdk",
     "description": "SDK for Backend PHP SDK for resolving idToken and more.",
     "type": "library",
     "license": "MIT",
