@@ -3,7 +3,7 @@
 /**
  * Pure-PHP implementation of Blowfish.
  *
- * Uses an internal implementation.
+ * Uses mcrypt, if available, and an internal implementation, otherwise.
  *
  * PHP version 5
  *
@@ -22,7 +22,7 @@
  * and password. This renders OpenSSL unusable and forces us to use a pure-PHP implementation
  * of blowfish.
  *
- * # phpseclib's three different _encryptBlock() implementations
+ * # phpseclib's four different _encryptBlock() implementations
  *
  * When using Blowfish as an encryption algorithm, _encryptBlock() is called 9 + 512 +
  * (the number of blocks in the plaintext) times.
@@ -56,6 +56,10 @@
  * ~90MB, yielding a 106x increase in memory usage. Consequently, it bcrypt calls a different
  * _encryptBlock() then the regular Blowfish does. That said, the Blowfish _encryptBlock() is
  * basically just a thin wrapper around the bcrypt _encryptBlock(), so there's that.
+ *
+ * This explains 3 of the 4 _encryptBlock() implementations. the last _encryptBlock()
+ * implementation can best be understood by doing Ctrl + F and searching for where
+ * self::$use_reg_intval is defined.
  *
  * # phpseclib's three different _setupKey() implementations
  *
@@ -110,13 +114,9 @@
  * @link      http://phpseclib.sourceforge.net
  */
 
-declare(strict_types=1);
-
 namespace phpseclib3\Crypt;
 
 use phpseclib3\Crypt\Common\BlockCipher;
-use phpseclib3\Exception\InvalidArgumentException;
-use phpseclib3\Exception\LengthException;
 
 /**
  * Pure-PHP implementation of Blowfish.
@@ -133,6 +133,22 @@ class Blowfish extends BlockCipher
      * @var int
      */
     protected $block_size = 8;
+
+    /**
+     * The mcrypt specific name of the cipher
+     *
+     * @see \phpseclib3\Crypt\Common\SymmetricKey::cipher_name_mcrypt
+     * @var string
+     */
+    protected $cipher_name_mcrypt = 'blowfish';
+
+    /**
+     * Optimizing value while CFB-encrypting
+     *
+     * @see \phpseclib3\Crypt\Common\SymmetricKey::cfb_init_len
+     * @var int
+     */
+    protected $cfb_init_len = 500;
 
     /**
      * The fixed subkeys boxes ($sbox0 - $sbox3) with 256 entries each
@@ -173,7 +189,7 @@ class Blowfish extends BlockCipher
         0x2464369b, 0xf009b91e, 0x5563911d, 0x59dfa6aa, 0x78c14389, 0xd95a537f, 0x207d5ba2, 0x02e5b9c5,
         0x83260376, 0x6295cfa9, 0x11c81968, 0x4e734a41, 0xb3472dca, 0x7b14a94a, 0x1b510052, 0x9a532915,
         0xd60f573f, 0xbc9bc6e4, 0x2b60a476, 0x81e67400, 0x08ba6fb5, 0x571be91f, 0xf296ec6b, 0x2a0dd915,
-        0xb6636521, 0xe7b9f9b6, 0xff34052e, 0xc5855664, 0x53b02d5d, 0xa99f8fa1, 0x08ba4799, 0x6e85076a,
+        0xb6636521, 0xe7b9f9b6, 0xff34052e, 0xc5855664, 0x53b02d5d, 0xa99f8fa1, 0x08ba4799, 0x6e85076a
     ];
 
     /**
@@ -213,7 +229,7 @@ class Blowfish extends BlockCipher
         0x3372f092, 0x8d937e41, 0xd65fecf1, 0x6c223bdb, 0x7cde3759, 0xcbee7460, 0x4085f2a7, 0xce77326e,
         0xa6078084, 0x19f8509e, 0xe8efd855, 0x61d99735, 0xa969a7aa, 0xc50c06c2, 0x5a04abfc, 0x800bcadc,
         0x9e447a2e, 0xc3453484, 0xfdd56705, 0x0e1e9ec9, 0xdb73dbd3, 0x105588cd, 0x675fda79, 0xe3674340,
-        0xc5c43465, 0x713e38d8, 0x3d28f89e, 0xf16dff20, 0x153e21e7, 0x8fb03d4a, 0xe6e39f2b, 0xdb83adf7,
+        0xc5c43465, 0x713e38d8, 0x3d28f89e, 0xf16dff20, 0x153e21e7, 0x8fb03d4a, 0xe6e39f2b, 0xdb83adf7
     ];
 
     /**
@@ -253,7 +269,7 @@ class Blowfish extends BlockCipher
         0x11e69ed7, 0x2338ea63, 0x53c2dd94, 0xc2c21634, 0xbbcbee56, 0x90bcb6de, 0xebfc7da1, 0xce591d76,
         0x6f05e409, 0x4b7c0188, 0x39720a3d, 0x7c927c24, 0x86e3725f, 0x724d9db9, 0x1ac15bb4, 0xd39eb8fc,
         0xed545578, 0x08fca5b5, 0xd83d7cd3, 0x4dad0fc4, 0x1e50ef5e, 0xb161e6f8, 0xa28514d9, 0x6c51133c,
-        0x6fd5c7e7, 0x56e14ec4, 0x362abfce, 0xddc6c837, 0xd79a3234, 0x92638212, 0x670efa8e, 0x406000e0,
+        0x6fd5c7e7, 0x56e14ec4, 0x362abfce, 0xddc6c837, 0xd79a3234, 0x92638212, 0x670efa8e, 0x406000e0
     ];
 
     /**
@@ -293,7 +309,7 @@ class Blowfish extends BlockCipher
         0xc9aa53fd, 0x62a80f00, 0xbb25bfe2, 0x35bdd2f6, 0x71126905, 0xb2040222, 0xb6cbcf7c, 0xcd769c2b,
         0x53113ec0, 0x1640e3d3, 0x38abbd60, 0x2547adf0, 0xba38209c, 0xf746ce76, 0x77afa1c5, 0x20756060,
         0x85cbfe4e, 0x8ae88dd8, 0x7aaaf9b0, 0x4cf9aa7e, 0x1948c25c, 0x02fb8a8c, 0x01c36ae4, 0xd6ebe1f9,
-        0x90d4f869, 0xa65cdea0, 0x3f09252d, 0xc208e69f, 0xb74e6132, 0xce77e25b, 0x578fdfe3, 0x3ac372e6,
+        0x90d4f869, 0xa65cdea0, 0x3f09252d, 0xc208e69f, 0xb74e6132, 0xce77e25b, 0x578fdfe3, 0x3ac372e6
     ];
 
     /**
@@ -304,7 +320,7 @@ class Blowfish extends BlockCipher
     private static $parray = [
         0x243f6a88, 0x85a308d3, 0x13198a2e, 0x03707344, 0xa4093822, 0x299f31d0,
         0x082efa98, 0xec4e6c89, 0x452821e6, 0x38d01377, 0xbe5466cf, 0x34e90c6c,
-        0xc0ac29b7, 0xc97c50dd, 0x3f84d5b5, 0xb5470917, 0x9216d5d9, 0x8979fb1b,
+        0xc0ac29b7, 0xc97c50dd, 0x3f84d5b5, 0xb5470917, 0x9216d5d9, 0x8979fb1b
     ];
 
     /**
@@ -338,14 +354,15 @@ class Blowfish extends BlockCipher
     /**
      * Default Constructor.
      *
-     * @throws InvalidArgumentException if an invalid / unsupported mode is provided
+     * @param string $mode
+     * @throws \InvalidArgumentException if an invalid / unsupported mode is provided
      */
-    public function __construct(string $mode)
+    public function __construct($mode)
     {
         parent::__construct($mode);
 
         if ($this->mode == self::MODE_STREAM) {
-            throw new InvalidArgumentException('Block ciphers cannot be ran in stream mode');
+            throw new \InvalidArgumentException('Block ciphers cannot be ran in stream mode');
         }
     }
 
@@ -353,11 +370,13 @@ class Blowfish extends BlockCipher
      * Sets the key length.
      *
      * Key lengths can be between 32 and 448 bits.
+     *
+     * @param int $length
      */
-    public function setKeyLength(int $length): void
+    public function setKeyLength($length)
     {
         if ($length < 32 || $length > 448) {
-                throw new LengthException('Key size of ' . $length . ' bits is not supported by this algorithm. Only keys of sizes between 32 and 448 bits are supported');
+                throw new \LengthException('Key size of ' . $length . ' bits is not supported by this algorithm. Only keys of sizes between 32 and 448 bits are supported');
         }
 
         $this->key_length = $length >> 3;
@@ -371,8 +390,10 @@ class Blowfish extends BlockCipher
      * This is mainly just a wrapper to set things up for \phpseclib3\Crypt\Common\SymmetricKey::isValidEngine()
      *
      * @see \phpseclib3\Crypt\Common\SymmetricKey::isValidEngine()
+     * @param int $engine
+     * @return bool
      */
-    protected function isValidEngineHelper(int $engine): bool
+    protected function isValidEngineHelper($engine)
     {
         if ($engine == self::ENGINE_OPENSSL) {
             if ($this->key_length < 16) {
@@ -396,7 +417,7 @@ class Blowfish extends BlockCipher
      *
      * @see \phpseclib3\Crypt\Common\SymmetricKey::_setupKey()
      */
-    protected function setupKey(): void
+    protected function setupKey()
     {
         if (isset($this->kl['key']) && $this->key === $this->kl['key']) {
             // already expanded
@@ -411,8 +432,8 @@ class Blowfish extends BlockCipher
                 self::$sbox0,
                 self::$sbox1,
                 self::$sbox2,
-                self::$sbox3,
-            ],
+                self::$sbox3
+            ]
         ];
 
         // unpack binary string in unsigned chars
@@ -434,13 +455,13 @@ class Blowfish extends BlockCipher
         // encrypt P3 and P4 with the new P1 and P2, do it with all P-array and subkeys
         $data = "\0\0\0\0\0\0\0\0";
         for ($i = 0; $i < 18; $i += 2) {
-            [$l, $r] = array_values(unpack('N*', $data = $this->encryptBlock($data)));
+            list($l, $r) = array_values(unpack('N*', $data = $this->encryptBlock($data)));
             $this->bctx['p'][$i    ] = $l;
             $this->bctx['p'][$i + 1] = $r;
         }
         for ($i = 0; $i < 4; ++$i) {
             for ($j = 0; $j < 256; $j += 2) {
-                [$l, $r] = array_values(unpack('N*', $data = $this->encryptBlock($data)));
+                list($l, $r) = array_values(unpack('N*', $data = $this->encryptBlock($data)));
                 $this->bctx['sb'][$i][$j    ] = $l;
                 $this->bctx['sb'][$i][$j + 1] = $r;
             }
@@ -450,7 +471,7 @@ class Blowfish extends BlockCipher
     /**
      * Initialize Static Variables
      */
-    protected static function initialize_static_variables(): void
+    protected static function initialize_static_variables()
     {
         if (is_float(self::$sbox2[0])) {
             self::$sbox0 = array_map('intval', self::$sbox0);
@@ -465,8 +486,13 @@ class Blowfish extends BlockCipher
 
     /**
      * bcrypt
+     *
+     * @param string $sha2pass
+     * @param string $sha2salt
+     * @access private
+     * @return string
      */
-    private static function bcrypt_hash(string $sha2pass, string $sha2salt): string
+    private static function bcrypt_hash($sha2pass, $sha2salt)
     {
         $p = self::$parray;
         $sbox0 = self::$sbox0;
@@ -486,7 +512,7 @@ class Blowfish extends BlockCipher
 
         for ($i = 0; $i < 64; $i++) {
             for ($j = 0; $j < 8; $j += 2) { // count($cdata) == 8
-                [$cdata[$j], $cdata[$j + 1]] = self::encryptBlockHelperFast($cdata[$j], $cdata[$j + 1], $sbox0, $sbox1, $sbox2, $sbox3, $p);
+                list($cdata[$j], $cdata[$j + 1]) = self::encryptBlockHelperFast($cdata[$j], $cdata[$j + 1], $sbox0, $sbox1, $sbox2, $sbox3, $p);
             }
         }
 
@@ -495,8 +521,15 @@ class Blowfish extends BlockCipher
 
     /**
      * Performs OpenSSH-style bcrypt
+     *
+     * @param string $pass
+     * @param string $salt
+     * @param int $keylen
+     * @param int $rounds
+     * @access public
+     * @return string
      */
-    public static function bcrypt_pbkdf(string $pass, string $salt, int $keylen, int $rounds): string
+    public static function bcrypt_pbkdf($pass, $salt, $keylen, $rounds)
     {
         self::initialize_static_variables();
 
@@ -539,7 +572,7 @@ class Blowfish extends BlockCipher
      * @param int[] $p
      * @see self::_bcrypt_hash()
      */
-    private static function expand0state(array $key, array &$sbox0, array &$sbox1, array &$sbox2, array &$sbox3, array &$p): void
+    private static function expand0state(array $key, array &$sbox0, array &$sbox1, array &$sbox2, array &$sbox3, array &$p)
     {
         // expand0state is basically the same thing as this:
         //return self::expandstate(array_fill(0, 16, 0), $key);
@@ -563,32 +596,39 @@ class Blowfish extends BlockCipher
             $p[14] ^ $key[14],
             $p[15] ^ $key[15],
             $p[16] ^ $key[0],
-            $p[17] ^ $key[1],
+            $p[17] ^ $key[1]
         ];
 
-        [$p[0], $p[1]] = self::encryptBlockHelperFast(0, 0, $sbox0, $sbox1, $sbox2, $sbox3, $p);
-        for ($i = 2; $i < 18; $i += 2) {
-            [$p[$i], $p[$i + 1]] = self::encryptBlockHelperFast($p[$i - 2], $p[$i - 1], $sbox0, $sbox1, $sbox2, $sbox3, $p);
+        // @codingStandardsIgnoreStart
+        list( $p[0],  $p[1]) = self::encryptBlockHelperFast(     0,      0, $sbox0, $sbox1, $sbox2, $sbox3, $p);
+        list( $p[2],  $p[3]) = self::encryptBlockHelperFast($p[ 0], $p[ 1], $sbox0, $sbox1, $sbox2, $sbox3, $p);
+        list( $p[4],  $p[5]) = self::encryptBlockHelperFast($p[ 2], $p[ 3], $sbox0, $sbox1, $sbox2, $sbox3, $p);
+        list( $p[6],  $p[7]) = self::encryptBlockHelperFast($p[ 4], $p[ 5], $sbox0, $sbox1, $sbox2, $sbox3, $p);
+        list( $p[8],  $p[9]) = self::encryptBlockHelperFast($p[ 6], $p[ 7], $sbox0, $sbox1, $sbox2, $sbox3, $p);
+        list($p[10], $p[11]) = self::encryptBlockHelperFast($p[ 8], $p[ 9], $sbox0, $sbox1, $sbox2, $sbox3, $p);
+        list($p[12], $p[13]) = self::encryptBlockHelperFast($p[10], $p[11], $sbox0, $sbox1, $sbox2, $sbox3, $p);
+        list($p[14], $p[15]) = self::encryptBlockHelperFast($p[12], $p[13], $sbox0, $sbox1, $sbox2, $sbox3, $p);
+        list($p[16], $p[17]) = self::encryptBlockHelperFast($p[14], $p[15], $sbox0, $sbox1, $sbox2, $sbox3, $p);
+        // @codingStandardsIgnoreEnd
+
+        list($sbox0[0], $sbox0[1]) = self::encryptBlockHelperFast($p[16], $p[17], $sbox0, $sbox1, $sbox2, $sbox3, $p);
+        for ($i = 2; $i < 256; $i += 2) {
+            list($sbox0[$i], $sbox0[$i + 1]) = self::encryptBlockHelperFast($sbox0[$i - 2], $sbox0[$i - 1], $sbox0, $sbox1, $sbox2, $sbox3, $p);
         }
 
-        [$sbox0[0], $sbox0[1]] = self::encryptBlockHelperFast($p[16], $p[17], $sbox0, $sbox1, $sbox2, $sbox3, $p);
+        list($sbox1[0], $sbox1[1]) = self::encryptBlockHelperFast($sbox0[254], $sbox0[255], $sbox0, $sbox1, $sbox2, $sbox3, $p);
         for ($i = 2; $i < 256; $i += 2) {
-            [$sbox0[$i], $sbox0[$i + 1]] = self::encryptBlockHelperFast($sbox0[$i - 2], $sbox0[$i - 1], $sbox0, $sbox1, $sbox2, $sbox3, $p);
+            list($sbox1[$i], $sbox1[$i + 1]) = self::encryptBlockHelperFast($sbox1[$i - 2], $sbox1[$i - 1], $sbox0, $sbox1, $sbox2, $sbox3, $p);
         }
 
-        [$sbox1[0], $sbox1[1]] = self::encryptBlockHelperFast($sbox0[254], $sbox0[255], $sbox0, $sbox1, $sbox2, $sbox3, $p);
+        list($sbox2[0], $sbox2[1]) = self::encryptBlockHelperFast($sbox1[254], $sbox1[255], $sbox0, $sbox1, $sbox2, $sbox3, $p);
         for ($i = 2; $i < 256; $i += 2) {
-            [$sbox1[$i], $sbox1[$i + 1]] = self::encryptBlockHelperFast($sbox1[$i - 2], $sbox1[$i - 1], $sbox0, $sbox1, $sbox2, $sbox3, $p);
+            list($sbox2[$i], $sbox2[$i + 1]) = self::encryptBlockHelperFast($sbox2[$i - 2], $sbox2[$i - 1], $sbox0, $sbox1, $sbox2, $sbox3, $p);
         }
 
-        [$sbox2[0], $sbox2[1]] = self::encryptBlockHelperFast($sbox1[254], $sbox1[255], $sbox0, $sbox1, $sbox2, $sbox3, $p);
+        list($sbox3[0], $sbox3[1]) = self::encryptBlockHelperFast($sbox2[254], $sbox2[255], $sbox0, $sbox1, $sbox2, $sbox3, $p);
         for ($i = 2; $i < 256; $i += 2) {
-            [$sbox2[$i], $sbox2[$i + 1]] = self::encryptBlockHelperFast($sbox2[$i - 2], $sbox2[$i - 1], $sbox0, $sbox1, $sbox2, $sbox3, $p);
-        }
-
-        [$sbox3[0], $sbox3[1]] = self::encryptBlockHelperFast($sbox2[254], $sbox2[255], $sbox0, $sbox1, $sbox2, $sbox3, $p);
-        for ($i = 2; $i < 256; $i += 2) {
-            [$sbox3[$i], $sbox3[$i + 1]] = self::encryptBlockHelperFast($sbox3[$i - 2], $sbox3[$i - 1], $sbox0, $sbox1, $sbox2, $sbox3, $p);
+            list($sbox3[$i], $sbox3[$i + 1]) = self::encryptBlockHelperFast($sbox3[$i - 2], $sbox3[$i - 1], $sbox0, $sbox1, $sbox2, $sbox3, $p);
         }
     }
 
@@ -605,7 +645,7 @@ class Blowfish extends BlockCipher
      * @param int[] $p
      * @see self::_bcrypt_hash()
      */
-    private static function expandstate(array $data, array $key, array &$sbox0, array &$sbox1, array &$sbox2, array &$sbox3, array &$p): void
+    private static function expandstate(array $data, array $key, array &$sbox0, array &$sbox1, array &$sbox2, array &$sbox3, array &$p)
     {
         $p = [
             $p[0] ^ $key[0],
@@ -625,39 +665,49 @@ class Blowfish extends BlockCipher
             $p[14] ^ $key[14],
             $p[15] ^ $key[15],
             $p[16] ^ $key[0],
-            $p[17] ^ $key[1],
+            $p[17] ^ $key[1]
         ];
 
-        [$p[0], $p[1]] = self::encryptBlockHelperFast($data[0], $data[1], $sbox0, $sbox1, $sbox2, $sbox3, $p);
-        for ($i = 2, $j = 2; $i < 18; $i += 2, $j = ($j + 2) % 16) {
-            [$p[$i], $p[$i + 1]] = self::encryptBlockHelperFast($data[$j] ^ $p[$i - 2], $data[$j + 1] ^ $p[$i - 1], $sbox0, $sbox1, $sbox2, $sbox3, $p);
-        }
+        // @codingStandardsIgnoreStart
+        list( $p[0],  $p[1]) = self::encryptBlockHelperFast($data[ 0]         , $data[ 1]         , $sbox0, $sbox1, $sbox2, $sbox3, $p);
+        list( $p[2],  $p[3]) = self::encryptBlockHelperFast($data[ 2] ^ $p[ 0], $data[ 3] ^ $p[ 1], $sbox0, $sbox1, $sbox2, $sbox3, $p);
+        list( $p[4],  $p[5]) = self::encryptBlockHelperFast($data[ 4] ^ $p[ 2], $data[ 5] ^ $p[ 3], $sbox0, $sbox1, $sbox2, $sbox3, $p);
+        list( $p[6],  $p[7]) = self::encryptBlockHelperFast($data[ 6] ^ $p[ 4], $data[ 7] ^ $p[ 5], $sbox0, $sbox1, $sbox2, $sbox3, $p);
+        list( $p[8],  $p[9]) = self::encryptBlockHelperFast($data[ 8] ^ $p[ 6], $data[ 9] ^ $p[ 7], $sbox0, $sbox1, $sbox2, $sbox3, $p);
+        list($p[10], $p[11]) = self::encryptBlockHelperFast($data[10] ^ $p[ 8], $data[11] ^ $p[ 9], $sbox0, $sbox1, $sbox2, $sbox3, $p);
+        list($p[12], $p[13]) = self::encryptBlockHelperFast($data[12] ^ $p[10], $data[13] ^ $p[11], $sbox0, $sbox1, $sbox2, $sbox3, $p);
+        list($p[14], $p[15]) = self::encryptBlockHelperFast($data[14] ^ $p[12], $data[15] ^ $p[13], $sbox0, $sbox1, $sbox2, $sbox3, $p);
+        list($p[16], $p[17]) = self::encryptBlockHelperFast($data[ 0] ^ $p[14], $data[ 1] ^ $p[15], $sbox0, $sbox1, $sbox2, $sbox3, $p);
+        // @codingStandardsIgnoreEnd
 
-        [$sbox0[0], $sbox0[1]] = self::encryptBlockHelperFast($data[2] ^ $p[16], $data[3] ^ $p[17], $sbox0, $sbox1, $sbox2, $sbox3, $p);
+        list($sbox0[0], $sbox0[1]) = self::encryptBlockHelperFast($data[2] ^ $p[16], $data[3] ^ $p[17], $sbox0, $sbox1, $sbox2, $sbox3, $p);
         for ($i = 2, $j = 4; $i < 256; $i += 2, $j = ($j + 2) % 16) { // instead of 16 maybe count($data) would be better?
-            [$sbox0[$i], $sbox0[$i + 1]] = self::encryptBlockHelperFast($data[$j] ^ $sbox0[$i - 2], $data[$j + 1] ^ $sbox0[$i - 1], $sbox0, $sbox1, $sbox2, $sbox3, $p);
+            list($sbox0[$i], $sbox0[$i + 1]) = self::encryptBlockHelperFast($data[$j] ^ $sbox0[$i - 2], $data[$j + 1] ^ $sbox0[$i - 1], $sbox0, $sbox1, $sbox2, $sbox3, $p);
         }
 
-        [$sbox1[0], $sbox1[1]] = self::encryptBlockHelperFast($data[2] ^ $sbox0[254], $data[3] ^ $sbox0[255], $sbox0, $sbox1, $sbox2, $sbox3, $p);
+        list($sbox1[0], $sbox1[1]) = self::encryptBlockHelperFast($data[2] ^ $sbox0[254], $data[3] ^ $sbox0[255], $sbox0, $sbox1, $sbox2, $sbox3, $p);
         for ($i = 2, $j = 4; $i < 256; $i += 2, $j = ($j + 2) % 16) {
-            [$sbox1[$i], $sbox1[$i + 1]] = self::encryptBlockHelperFast($data[$j] ^ $sbox1[$i - 2], $data[$j + 1] ^ $sbox1[$i - 1], $sbox0, $sbox1, $sbox2, $sbox3, $p);
+            list($sbox1[$i], $sbox1[$i + 1]) = self::encryptBlockHelperFast($data[$j] ^ $sbox1[$i - 2], $data[$j + 1] ^ $sbox1[$i - 1], $sbox0, $sbox1, $sbox2, $sbox3, $p);
         }
 
-        [$sbox2[0], $sbox2[1]] = self::encryptBlockHelperFast($data[2] ^ $sbox1[254], $data[3] ^ $sbox1[255], $sbox0, $sbox1, $sbox2, $sbox3, $p);
+        list($sbox2[0], $sbox2[1]) = self::encryptBlockHelperFast($data[2] ^ $sbox1[254], $data[3] ^ $sbox1[255], $sbox0, $sbox1, $sbox2, $sbox3, $p);
         for ($i = 2, $j = 4; $i < 256; $i += 2, $j = ($j + 2) % 16) {
-            [$sbox2[$i], $sbox2[$i + 1]] = self::encryptBlockHelperFast($data[$j] ^ $sbox2[$i - 2], $data[$j + 1] ^ $sbox2[$i - 1], $sbox0, $sbox1, $sbox2, $sbox3, $p);
+            list($sbox2[$i], $sbox2[$i + 1]) = self::encryptBlockHelperFast($data[$j] ^ $sbox2[$i - 2], $data[$j + 1] ^ $sbox2[$i - 1], $sbox0, $sbox1, $sbox2, $sbox3, $p);
         }
 
-        [$sbox3[0], $sbox3[1]] = self::encryptBlockHelperFast($data[2] ^ $sbox2[254], $data[3] ^ $sbox2[255], $sbox0, $sbox1, $sbox2, $sbox3, $p);
+        list($sbox3[0], $sbox3[1]) = self::encryptBlockHelperFast($data[2] ^ $sbox2[254], $data[3] ^ $sbox2[255], $sbox0, $sbox1, $sbox2, $sbox3, $p);
         for ($i = 2, $j = 4; $i < 256; $i += 2, $j = ($j + 2) % 16) {
-            [$sbox3[$i], $sbox3[$i + 1]] = self::encryptBlockHelperFast($data[$j] ^ $sbox3[$i - 2], $data[$j + 1] ^ $sbox3[$i - 1], $sbox0, $sbox1, $sbox2, $sbox3, $p);
+            list($sbox3[$i], $sbox3[$i + 1]) = self::encryptBlockHelperFast($data[$j] ^ $sbox3[$i - 2], $data[$j + 1] ^ $sbox3[$i - 1], $sbox0, $sbox1, $sbox2, $sbox3, $p);
         }
     }
 
     /**
      * Encrypts a block
+     *
+     * @param string $in
+     * @return string
      */
-    protected function encryptBlock(string $in): string
+    protected function encryptBlock($in)
     {
         $p = $this->bctx['p'];
         // extract($this->bctx['sb'], EXTR_PREFIX_ALL, 'sb'); // slower
@@ -670,7 +720,7 @@ class Blowfish extends BlockCipher
         $l = $in[1];
         $r = $in[2];
 
-        [$r, $l] = PHP_INT_SIZE == 4 ?
+        list($r, $l) = PHP_INT_SIZE == 4 ?
             self::encryptBlockHelperSlow($l, $r, $sb_0, $sb_1, $sb_2, $sb_3, $p) :
             self::encryptBlockHelperFast($l, $r, $sb_0, $sb_1, $sb_2, $sb_3, $p);
 
@@ -681,6 +731,8 @@ class Blowfish extends BlockCipher
      * Fast helper function for block encryption
      *
      * @access private
+     * @param int $x0
+     * @param int $x1
      * @param int[] $sbox0
      * @param int[] $sbox1
      * @param int[] $sbox2
@@ -688,7 +740,7 @@ class Blowfish extends BlockCipher
      * @param int[] $p
      * @return int[]
      */
-    private static function encryptBlockHelperFast(int $x0, int $x1, array $sbox0, array $sbox1, array $sbox2, array $sbox3, array $p): array
+    private static function encryptBlockHelperFast($x0, $x1, array $sbox0, array $sbox1, array $sbox2, array $sbox3, array $p)
     {
         $x0 ^= $p[0];
         $x1 ^= ((($sbox0[($x0 & 0xFF000000) >> 24] + $sbox1[($x0 & 0xFF0000) >> 16]) ^ $sbox2[($x0 & 0xFF00) >> 8]) + $sbox3[$x0 & 0xFF]) ^ $p[1];
@@ -715,6 +767,8 @@ class Blowfish extends BlockCipher
      * Slow helper function for block encryption
      *
      * @access private
+     * @param int $x0
+     * @param int $x1
      * @param int[] $sbox0
      * @param int[] $sbox1
      * @param int[] $sbox2
@@ -722,34 +776,37 @@ class Blowfish extends BlockCipher
      * @param int[] $p
      * @return int[]
      */
-    private static function encryptBlockHelperSlow(int $x0, int $x1, array $sbox0, array $sbox1, array $sbox2, array $sbox3, array $p): array
+    private static function encryptBlockHelperSlow($x0, $x1, array $sbox0, array $sbox1, array $sbox2, array $sbox3, array $p)
     {
         // -16777216 == intval(0xFF000000) on 32-bit PHP installs
         $x0 ^= $p[0];
-        $x1 ^= intval((intval($sbox0[(($x0 & -16777216) >> 24) & 0xFF] + $sbox1[($x0 & 0xFF0000) >> 16]) ^ $sbox2[($x0 & 0xFF00) >> 8]) + $sbox3[$x0 & 0xFF]) ^ $p[1];
-        $x0 ^= intval((intval($sbox0[(($x1 & -16777216) >> 24) & 0xFF] + $sbox1[($x1 & 0xFF0000) >> 16]) ^ $sbox2[($x1 & 0xFF00) >> 8]) + $sbox3[$x1 & 0xFF]) ^ $p[2];
-        $x1 ^= intval((intval($sbox0[(($x0 & -16777216) >> 24) & 0xFF] + $sbox1[($x0 & 0xFF0000) >> 16]) ^ $sbox2[($x0 & 0xFF00) >> 8]) + $sbox3[$x0 & 0xFF]) ^ $p[3];
-        $x0 ^= intval((intval($sbox0[(($x1 & -16777216) >> 24) & 0xFF] + $sbox1[($x1 & 0xFF0000) >> 16]) ^ $sbox2[($x1 & 0xFF00) >> 8]) + $sbox3[$x1 & 0xFF]) ^ $p[4];
-        $x1 ^= intval((intval($sbox0[(($x0 & -16777216) >> 24) & 0xFF] + $sbox1[($x0 & 0xFF0000) >> 16]) ^ $sbox2[($x0 & 0xFF00) >> 8]) + $sbox3[$x0 & 0xFF]) ^ $p[5];
-        $x0 ^= intval((intval($sbox0[(($x1 & -16777216) >> 24) & 0xFF] + $sbox1[($x1 & 0xFF0000) >> 16]) ^ $sbox2[($x1 & 0xFF00) >> 8]) + $sbox3[$x1 & 0xFF]) ^ $p[6];
-        $x1 ^= intval((intval($sbox0[(($x0 & -16777216) >> 24) & 0xFF] + $sbox1[($x0 & 0xFF0000) >> 16]) ^ $sbox2[($x0 & 0xFF00) >> 8]) + $sbox3[$x0 & 0xFF]) ^ $p[7];
-        $x0 ^= intval((intval($sbox0[(($x1 & -16777216) >> 24) & 0xFF] + $sbox1[($x1 & 0xFF0000) >> 16]) ^ $sbox2[($x1 & 0xFF00) >> 8]) + $sbox3[$x1 & 0xFF]) ^ $p[8];
-        $x1 ^= intval((intval($sbox0[(($x0 & -16777216) >> 24) & 0xFF] + $sbox1[($x0 & 0xFF0000) >> 16]) ^ $sbox2[($x0 & 0xFF00) >> 8]) + $sbox3[$x0 & 0xFF]) ^ $p[9];
-        $x0 ^= intval((intval($sbox0[(($x1 & -16777216) >> 24) & 0xFF] + $sbox1[($x1 & 0xFF0000) >> 16]) ^ $sbox2[($x1 & 0xFF00) >> 8]) + $sbox3[$x1 & 0xFF]) ^ $p[10];
-        $x1 ^= intval((intval($sbox0[(($x0 & -16777216) >> 24) & 0xFF] + $sbox1[($x0 & 0xFF0000) >> 16]) ^ $sbox2[($x0 & 0xFF00) >> 8]) + $sbox3[$x0 & 0xFF]) ^ $p[11];
-        $x0 ^= intval((intval($sbox0[(($x1 & -16777216) >> 24) & 0xFF] + $sbox1[($x1 & 0xFF0000) >> 16]) ^ $sbox2[($x1 & 0xFF00) >> 8]) + $sbox3[$x1 & 0xFF]) ^ $p[12];
-        $x1 ^= intval((intval($sbox0[(($x0 & -16777216) >> 24) & 0xFF] + $sbox1[($x0 & 0xFF0000) >> 16]) ^ $sbox2[($x0 & 0xFF00) >> 8]) + $sbox3[$x0 & 0xFF]) ^ $p[13];
-        $x0 ^= intval((intval($sbox0[(($x1 & -16777216) >> 24) & 0xFF] + $sbox1[($x1 & 0xFF0000) >> 16]) ^ $sbox2[($x1 & 0xFF00) >> 8]) + $sbox3[$x1 & 0xFF]) ^ $p[14];
-        $x1 ^= intval((intval($sbox0[(($x0 & -16777216) >> 24) & 0xFF] + $sbox1[($x0 & 0xFF0000) >> 16]) ^ $sbox2[($x0 & 0xFF00) >> 8]) + $sbox3[$x0 & 0xFF]) ^ $p[15];
-        $x0 ^= intval((intval($sbox0[(($x1 & -16777216) >> 24) & 0xFF] + $sbox1[($x1 & 0xFF0000) >> 16]) ^ $sbox2[($x1 & 0xFF00) >> 8]) + $sbox3[$x1 & 0xFF]) ^ $p[16];
+        $x1 ^= self::safe_intval((self::safe_intval($sbox0[(($x0 & -16777216) >> 24) & 0xFF] + $sbox1[($x0 & 0xFF0000) >> 16]) ^ $sbox2[($x0 & 0xFF00) >> 8]) + $sbox3[$x0 & 0xFF]) ^ $p[1];
+        $x0 ^= self::safe_intval((self::safe_intval($sbox0[(($x1 & -16777216) >> 24) & 0xFF] + $sbox1[($x1 & 0xFF0000) >> 16]) ^ $sbox2[($x1 & 0xFF00) >> 8]) + $sbox3[$x1 & 0xFF]) ^ $p[2];
+        $x1 ^= self::safe_intval((self::safe_intval($sbox0[(($x0 & -16777216) >> 24) & 0xFF] + $sbox1[($x0 & 0xFF0000) >> 16]) ^ $sbox2[($x0 & 0xFF00) >> 8]) + $sbox3[$x0 & 0xFF]) ^ $p[3];
+        $x0 ^= self::safe_intval((self::safe_intval($sbox0[(($x1 & -16777216) >> 24) & 0xFF] + $sbox1[($x1 & 0xFF0000) >> 16]) ^ $sbox2[($x1 & 0xFF00) >> 8]) + $sbox3[$x1 & 0xFF]) ^ $p[4];
+        $x1 ^= self::safe_intval((self::safe_intval($sbox0[(($x0 & -16777216) >> 24) & 0xFF] + $sbox1[($x0 & 0xFF0000) >> 16]) ^ $sbox2[($x0 & 0xFF00) >> 8]) + $sbox3[$x0 & 0xFF]) ^ $p[5];
+        $x0 ^= self::safe_intval((self::safe_intval($sbox0[(($x1 & -16777216) >> 24) & 0xFF] + $sbox1[($x1 & 0xFF0000) >> 16]) ^ $sbox2[($x1 & 0xFF00) >> 8]) + $sbox3[$x1 & 0xFF]) ^ $p[6];
+        $x1 ^= self::safe_intval((self::safe_intval($sbox0[(($x0 & -16777216) >> 24) & 0xFF] + $sbox1[($x0 & 0xFF0000) >> 16]) ^ $sbox2[($x0 & 0xFF00) >> 8]) + $sbox3[$x0 & 0xFF]) ^ $p[7];
+        $x0 ^= self::safe_intval((self::safe_intval($sbox0[(($x1 & -16777216) >> 24) & 0xFF] + $sbox1[($x1 & 0xFF0000) >> 16]) ^ $sbox2[($x1 & 0xFF00) >> 8]) + $sbox3[$x1 & 0xFF]) ^ $p[8];
+        $x1 ^= self::safe_intval((self::safe_intval($sbox0[(($x0 & -16777216) >> 24) & 0xFF] + $sbox1[($x0 & 0xFF0000) >> 16]) ^ $sbox2[($x0 & 0xFF00) >> 8]) + $sbox3[$x0 & 0xFF]) ^ $p[9];
+        $x0 ^= self::safe_intval((self::safe_intval($sbox0[(($x1 & -16777216) >> 24) & 0xFF] + $sbox1[($x1 & 0xFF0000) >> 16]) ^ $sbox2[($x1 & 0xFF00) >> 8]) + $sbox3[$x1 & 0xFF]) ^ $p[10];
+        $x1 ^= self::safe_intval((self::safe_intval($sbox0[(($x0 & -16777216) >> 24) & 0xFF] + $sbox1[($x0 & 0xFF0000) >> 16]) ^ $sbox2[($x0 & 0xFF00) >> 8]) + $sbox3[$x0 & 0xFF]) ^ $p[11];
+        $x0 ^= self::safe_intval((self::safe_intval($sbox0[(($x1 & -16777216) >> 24) & 0xFF] + $sbox1[($x1 & 0xFF0000) >> 16]) ^ $sbox2[($x1 & 0xFF00) >> 8]) + $sbox3[$x1 & 0xFF]) ^ $p[12];
+        $x1 ^= self::safe_intval((self::safe_intval($sbox0[(($x0 & -16777216) >> 24) & 0xFF] + $sbox1[($x0 & 0xFF0000) >> 16]) ^ $sbox2[($x0 & 0xFF00) >> 8]) + $sbox3[$x0 & 0xFF]) ^ $p[13];
+        $x0 ^= self::safe_intval((self::safe_intval($sbox0[(($x1 & -16777216) >> 24) & 0xFF] + $sbox1[($x1 & 0xFF0000) >> 16]) ^ $sbox2[($x1 & 0xFF00) >> 8]) + $sbox3[$x1 & 0xFF]) ^ $p[14];
+        $x1 ^= self::safe_intval((self::safe_intval($sbox0[(($x0 & -16777216) >> 24) & 0xFF] + $sbox1[($x0 & 0xFF0000) >> 16]) ^ $sbox2[($x0 & 0xFF00) >> 8]) + $sbox3[$x0 & 0xFF]) ^ $p[15];
+        $x0 ^= self::safe_intval((self::safe_intval($sbox0[(($x1 & -16777216) >> 24) & 0xFF] + $sbox1[($x1 & 0xFF0000) >> 16]) ^ $sbox2[($x1 & 0xFF00) >> 8]) + $sbox3[$x1 & 0xFF]) ^ $p[16];
 
         return [$x1 ^ $p[17], $x0];
     }
 
     /**
      * Decrypts a block
+     *
+     * @param string $in
+     * @return string
      */
-    protected function decryptBlock(string $in): string
+    protected function decryptBlock($in)
     {
         $p = $this->bctx['p'];
         $sb_0 = $this->bctx['sb'][0];
@@ -763,12 +820,12 @@ class Blowfish extends BlockCipher
 
         for ($i = 17; $i > 2; $i -= 2) {
             $l ^= $p[$i];
-            $r ^= intval((intval($sb_0[$l >> 24 & 0xff] + $sb_1[$l >> 16 & 0xff]) ^
+            $r ^= self::safe_intval((self::safe_intval($sb_0[$l >> 24 & 0xff] + $sb_1[$l >> 16 & 0xff]) ^
                   $sb_2[$l >>  8 & 0xff]) +
                   $sb_3[$l       & 0xff]);
 
             $r ^= $p[$i - 1];
-            $l ^= intval((intval($sb_0[$r >> 24 & 0xff] + $sb_1[$r >> 16 & 0xff]) ^
+            $l ^= self::safe_intval((self::safe_intval($sb_0[$r >> 24 & 0xff] + $sb_1[$r >> 16 & 0xff]) ^
                   $sb_2[$r >>  8 & 0xff]) +
                   $sb_3[$r       & 0xff]);
         }
@@ -780,7 +837,7 @@ class Blowfish extends BlockCipher
      *
      * @see \phpseclib3\Crypt\Common\SymmetricKey::_setupInlineCrypt()
      */
-    protected function setupInlineCrypt(): void
+    protected function setupInlineCrypt()
     {
         $p = $this->bctx['p'];
         $init_crypt = '
@@ -793,6 +850,8 @@ class Blowfish extends BlockCipher
             }
         ';
 
+        $safeint = self::safe_intval_inline();
+
         // Generating encrypt code:
         $encrypt_block = '
             $in = unpack("N*", $in);
@@ -802,14 +861,14 @@ class Blowfish extends BlockCipher
         for ($i = 0; $i < 16; $i += 2) {
             $encrypt_block .= '
                 $l^= ' . $p[$i] . ';
-                $r^= intval((intval($sb_0[$l >> 24 & 0xff] + $sb_1[$l >> 16 & 0xff]) ^
+                $r^= ' . sprintf($safeint, '(' . sprintf($safeint, '$sb_0[$l >> 24 & 0xff] + $sb_1[$l >> 16 & 0xff]') . ' ^
                       $sb_2[$l >>  8 & 0xff]) +
-                      $sb_3[$l       & 0xff]);
+                      $sb_3[$l       & 0xff]') . ';
 
                 $r^= ' . $p[$i + 1] . ';
-                $l^= intval((intval($sb_0[$r >> 24 & 0xff] + $sb_1[$r >> 16 & 0xff])  ^
+                $l^= ' . sprintf($safeint, '(' . sprintf($safeint, '$sb_0[$r >> 24 & 0xff] + $sb_1[$r >> 16 & 0xff]') . '  ^
                       $sb_2[$r >>  8 & 0xff]) +
-                      $sb_3[$r       & 0xff]);
+                      $sb_3[$r       & 0xff]') . ';
             ';
         }
         $encrypt_block .= '
@@ -818,7 +877,6 @@ class Blowfish extends BlockCipher
                 $l ^ ' . $p[16] . '
             );
         ';
-
          // Generating decrypt code:
         $decrypt_block = '
             $in = unpack("N*", $in);
@@ -829,14 +887,14 @@ class Blowfish extends BlockCipher
         for ($i = 17; $i > 2; $i -= 2) {
             $decrypt_block .= '
                 $l^= ' . $p[$i] . ';
-                $r^= intval((intval($sb_0[$l >> 24 & 0xff] + $sb_1[$l >> 16 & 0xff]) ^
+                $r^= ' . sprintf($safeint, '(' . sprintf($safeint, '$sb_0[$l >> 24 & 0xff] + $sb_1[$l >> 16 & 0xff]') . ' ^
                       $sb_2[$l >>  8 & 0xff]) +
-                      $sb_3[$l       & 0xff]);
+                      $sb_3[$l       & 0xff]') . ';
 
                 $r^= ' . $p[$i - 1] . ';
-                $l^= intval((intval($sb_0[$r >> 24 & 0xff] + $sb_1[$r >> 16 & 0xff]) ^
+                $l^= ' . sprintf($safeint, '(' . sprintf($safeint, '$sb_0[$r >> 24 & 0xff] + $sb_1[$r >> 16 & 0xff]') . ' ^
                       $sb_2[$r >>  8 & 0xff]) +
-                      $sb_3[$r       & 0xff]);
+                      $sb_3[$r       & 0xff]') . ';
             ';
         }
 
@@ -853,7 +911,7 @@ class Blowfish extends BlockCipher
                'init_encrypt'  => '',
                'init_decrypt'  => '',
                'encrypt_block' => $encrypt_block,
-               'decrypt_block' => $decrypt_block,
+               'decrypt_block' => $decrypt_block
             ]
         );
     }

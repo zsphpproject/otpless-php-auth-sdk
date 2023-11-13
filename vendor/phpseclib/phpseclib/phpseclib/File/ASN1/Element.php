@@ -11,8 +11,6 @@
  * @link      http://phpseclib.sourceforge.net
  */
 
-declare(strict_types=1);
-
 namespace phpseclib3\File\ASN1;
 
 /**
@@ -35,9 +33,10 @@ class Element
     /**
      * Constructor
      *
-     * @return Element
+     * @param string $encoded
+     * @return \phpseclib3\File\ASN1\Element
      */
-    public function __construct(string $encoded)
+    public function __construct($encoded)
     {
         $this->element = $encoded;
     }

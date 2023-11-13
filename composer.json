@@ -17,9 +17,9 @@
     "minimum-stability": "dev",
     "prefer-stable": true,
     "require": {
-        "guzzlehttp/guzzle": "7.9.x-dev",
-        "firebase/php-jwt": "dev-main",
-        "phpseclib/phpseclib": "dev-master"
+        "guzzlehttp/guzzle": ">=7.7.0",
+        "firebase/php-jwt": ">=6.7.0",
+        "phpseclib/phpseclib": "^3.0.0"
     },
     "require-dev": {},
     "extra": {
