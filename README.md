@@ -130,18 +130,20 @@ The Authorization Endpoint initiates the authentication process by sending a `ma
 ##### Method Signature:
 
 ```php
-generateMagicLink(mobile_number, email, client_id, client_secret,redirect_uri)
+generateMagicLink(mobile_number, email, client_id, client_secret,redirect_uri,channel)
 ```
 
 #### Method Params:
 
-| Params        | Data type | Mandatory | Constraints           | Remarks                                                                                               |
-| ------------- | --------- | --------- | --------------------- | ----------------------------------------------------------------------------------------------------- |
-| mobile_number | String    | false     | At least one required | The user's mobile number for authentication in the format: country code + number (e.g., 91XXXXXXXXXX) |
-| email         | String    | false     | At least one required | The user's email address for authentication.                                                          |
-| redirect_uri  | String    | true      |                       | The URL to which the user will be redirected after authentication. This should be URL-encoded         |
-| clientId      | String    | true      |                       | Your OTPLess `Client Id`                                                                              |
-| clientSecret  | String    | true      |                       | Your OTPLess `Client Secret`                                                                          |
+
+| Params        | Data type | Mandatory | Constraints                                       | Remarks                                                                                               |
+| ------------- | --------- | --------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| channel       | String    | false     | if no channel given WHATSAPP is chosen as default | WHATSAPP/SMS                                                                                          |
+| mobile_number | String    | false     | At least one required                             | The user's mobile number for authentication in the format: country code + number (e.g., 91XXXXXXXXXX) |
+| email         | String    | false     | At least one required                             | The user's email address for authentication.                                                          |
+| redirect_uri  | String    | true      |                                                   | The URL to which the user will be redirected after authentication. This should be URL-encoded         |
+| clientId      | String    | true      |                                                   | Your OTPLess `Client Id`                                                                              |
+| clientSecret  | String    | true      |                                                   | Your OTPLess `Client Secret`                                                                          |
 
 #### Return
 

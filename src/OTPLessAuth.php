@@ -114,7 +114,7 @@ class OTPLessAuth
     }
 
 
-    public function generateMagicLink($mobile, $email, $clientId, $clientSecret, $redirectURI)
+    public function generateMagicLink($mobile, $email, $clientId, $clientSecret, $redirectURI,$channel)
     {
         try {
             $client = new Client();
@@ -134,6 +134,9 @@ class OTPLessAuth
 
             if (!empty($redirectURI)) {
                 $queryParams["redirect_uri"] = $redirectURI;
+            }
+            if (!empty($channel)) {
+                $queryParams["channel"] = $channel;
             }
 
             $queryString = http_build_query($queryParams);
