@@ -16,6 +16,7 @@
     ],
     "minimum-stability": "dev",
     "prefer-stable": true,
+    
     "require": {
         "guzzlehttp/guzzle": "^7.0",
         "firebase/php-jwt": "dev-main",
