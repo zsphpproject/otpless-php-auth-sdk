@@ -3,7 +3,7 @@
         'name' => 'otpless/otpless-auth-sdk',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => 'b026b819f2769bd10942667f653efadd123738b8',
+        'reference' => '863b3be85b559fd24cbec7af203c7d97dc0f522b',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'firebase/php-jwt' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => 'f03270e63eaccf3019ef0f32849c497385774e11',
+            'reference' => '79cb30b729a22931b2fbd6b53f20629a83031ba9',
             'type' => 'library',
             'install_path' => __DIR__ . '/../firebase/php-jwt',
             'aliases' => array(
@@ -22,9 +22,9 @@
             'dev_requirement' => false,
         ),
         'guzzlehttp/guzzle' => array(
-            'pretty_version' => '7.9.x-dev',
-            'version' => '7.9.9999999.9999999-dev',
-            'reference' => 'd95d9ab74822c2ca06b31477cd6775a4a299b8e8',
+            'pretty_version' => '7.8.0',
+            'version' => '7.8.0.0',
+            'reference' => '1110f66a6530a40fe7aea0378fe608ee2b2248f9',
             'type' => 'library',
             'install_path' => __DIR__ . '/../guzzlehttp/guzzle',
             'aliases' => array(),
@@ -51,7 +51,7 @@
         'otpless/otpless-auth-sdk' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => 'b026b819f2769bd10942667f653efadd123738b8',
+            'reference' => '863b3be85b559fd24cbec7af203c7d97dc0f522b',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -69,7 +69,7 @@
         'phpseclib/phpseclib' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '93417928ccdf182a136f0386ce56a78f04cabfe5',
+            'reference' => 'c204a5ccb49ae1d1ae1cfebacc7cceb45e57a61c',
             'type' => 'library',
             'install_path' => __DIR__ . '/../phpseclib/phpseclib',
             'aliases' => array(
@@ -132,8 +132,8 @@
             'dev_requirement' => false,
         ),
         'symfony/deprecation-contracts' => array(
-            'pretty_version' => 'v3.3.0',
-            'version' => '3.3.0.0',
+            'pretty_version' => 'v3.4.0',
+            'version' => '3.4.0.0',
             'reference' => '7c3aff79d10325257a001fcf92d991f24fc967cf',
             'type' => 'library',
             'install_path' => __DIR__ . '/../symfony/deprecation-contracts',

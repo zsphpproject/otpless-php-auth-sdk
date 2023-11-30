@@ -1260,6 +1260,8 @@ class SSH2
         $c2s_compression_algorithms = $preferred['client_to_server']['comp'] ??
             SSH2::getSupportedCompressionAlgorithms();
 
+        $kex_algorithms = array_merge($kex_algorithms, array('ext-info-c'));
+
         // some SSH servers have buggy implementations of some of the above algorithms
         switch (true) {
             case $this->server_identifier == 'SSH-2.0-SSHD':
@@ -1274,6 +1276,20 @@ class SSH2
                     $c2s_mac_algorithms = array_values(array_diff(
                         $c2s_mac_algorithms,
                         ['hmac-sha1-96', 'hmac-md5-96']
+                    ));
+                }
+                break;
+            case substr($this->server_identifier, 0, 24) == 'SSH-2.0-TurboFTP_SERVER_':
+                if (!isset($preferred['server_to_client']['crypt'])) {
+                    $s2c_encryption_algorithms = array_values(array_diff(
+                        $s2c_encryption_algorithms,
+                        ['aes128-gcm@openssh.com', 'aes256-gcm@openssh.com']
+                    ));
+                }
+                if (!isset($preferred['client_to_server']['crypt'])) {
+                    $c2s_encryption_algorithms = array_values(array_diff(
+                        $c2s_encryption_algorithms,
+                        ['aes128-gcm@openssh.com', 'aes256-gcm@openssh.com']
                     ));
                 }
         }
@@ -2036,10 +2052,25 @@ class SSH2
                     return $this->login_helper($username, $password);
                 }
                 $this->disconnect_helper(DisconnectReason::CONNECTION_LOST);
-                throw new ConnectionClosedException('Connection closed by server');
+                throw $e;
             }
 
-            [$type, $service] = Strings::unpackSSH2('Cs', $response);
+            [$type] = Strings::unpackSSH2('C', $response);
+
+            if ($type == MessageType::EXT_INFO) {
+                [$nr_extensions] = Strings::unpackSSH2('N', $response);
+                for ($i = 0; $i < $nr_extensions; $i++) {
+                    [$extension_name, $extension_value] = Strings::unpackSSH2('ss', $response);
+                    if ($extension_name == 'server-sig-algs') {
+                        $this->supported_private_key_algorithms = explode(',', $extension_value);
+                    }
+                }
+
+                $response = $this->get_binary_packet();
+                [$type] = Strings::unpackSSH2('C', $response);
+            }
+
+            [$service] = Strings::unpackSSH2('s', $response);
             if ($type != MessageType::SERVICE_ACCEPT || $service != 'ssh-userauth') {
                 $this->disconnect_helper(DisconnectReason::PROTOCOL_ERROR);
                 throw new UnexpectedValueException('Expected SSH_MSG_SERVICE_ACCEPT');
@@ -2304,7 +2335,7 @@ class SSH2
             $privatekey = $privatekey->withPadding(RSA::SIGNATURE_PKCS1);
             $algos = ['rsa-sha2-256', 'rsa-sha2-512', 'ssh-rsa'];
             if (isset($this->preferred['hostkey'])) {
-                $algos = array_intersect($this->preferred['hostkey'], $algos);
+                $algos = array_intersect($algos, $this->preferred['hostkey']);
             }
             $algo = self::array_intersect_first($algos, $this->supported_private_key_algorithms);
             switch ($algo) {
@@ -3070,6 +3101,8 @@ class SSH2
         $this->session_id = false;
         $this->retry_connect = true;
         $this->get_seq_no = $this->send_seq_no = 0;
+        $this->channel_status = [];
+        $this->channel_id_last_interactive = 0;
     }
 
     /**

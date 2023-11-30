@@ -7,12 +7,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/firebase/php-jwt.git",
-                "reference": "f03270e63eaccf3019ef0f32849c497385774e11"
+                "reference": "79cb30b729a22931b2fbd6b53f20629a83031ba9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/firebase/php-jwt/zipball/f03270e63eaccf3019ef0f32849c497385774e11",
-                "reference": "f03270e63eaccf3019ef0f32849c497385774e11",
+                "url": "https://api.github.com/repos/firebase/php-jwt/zipball/79cb30b729a22931b2fbd6b53f20629a83031ba9",
+                "reference": "79cb30b729a22931b2fbd6b53f20629a83031ba9",
                 "shasum": ""
             },
             "require": {
@@ -30,7 +30,7 @@
                 "ext-sodium": "Support EdDSA (Ed25519) signatures",
                 "paragonie/sodium_compat": "Support EdDSA (Ed25519) signatures when libsodium is not present"
             },
-            "time": "2023-10-05T00:24:42+00:00",
+            "time": "2023-11-28T23:44:26+00:00",
             "default-branch": true,
             "type": "library",
             "installation-source": "dist",
@@ -63,23 +63,23 @@
             ],
             "support": {
                 "issues": "https://github.com/firebase/php-jwt/issues",
-                "source": "https://github.com/firebase/php-jwt/tree/v6.9.0"
+                "source": "https://github.com/firebase/php-jwt/tree/main"
             },
             "install-path": "../firebase/php-jwt"
         },
         {
             "name": "guzzlehttp/guzzle",
-            "version": "7.9.x-dev",
-            "version_normalized": "7.9.9999999.9999999-dev",
+            "version": "7.8.0",
+            "version_normalized": "7.8.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/guzzle/guzzle.git",
-                "reference": "d95d9ab74822c2ca06b31477cd6775a4a299b8e8"
+                "reference": "1110f66a6530a40fe7aea0378fe608ee2b2248f9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/guzzle/zipball/d95d9ab74822c2ca06b31477cd6775a4a299b8e8",
-                "reference": "d95d9ab74822c2ca06b31477cd6775a4a299b8e8",
+                "url": "https://api.github.com/repos/guzzle/guzzle/zipball/1110f66a6530a40fe7aea0378fe608ee2b2248f9",
+                "reference": "1110f66a6530a40fe7aea0378fe608ee2b2248f9",
                 "shasum": ""
             },
             "require": {
@@ -106,7 +106,7 @@
                 "ext-intl": "Required for Internationalized Domain Name (IDN) support",
                 "psr/log": "Required for using the Log middleware"
             },
-            "time": "2023-09-11T09:12:01+00:00",
+            "time": "2023-08-27T10:20:53+00:00",
             "type": "library",
             "extra": {
                 "bamarni-bin": {
@@ -178,7 +178,7 @@
             ],
             "support": {
                 "issues": "https://github.com/guzzle/guzzle/issues",
-                "source": "https://github.com/guzzle/guzzle/tree/7.8"
+                "source": "https://github.com/guzzle/guzzle/tree/7.8.0"
             },
             "funding": [
                 {
@@ -478,12 +478,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpseclib/phpseclib.git",
-                "reference": "93417928ccdf182a136f0386ce56a78f04cabfe5"
+                "reference": "c204a5ccb49ae1d1ae1cfebacc7cceb45e57a61c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpseclib/phpseclib/zipball/93417928ccdf182a136f0386ce56a78f04cabfe5",
-                "reference": "93417928ccdf182a136f0386ce56a78f04cabfe5",
+                "url": "https://api.github.com/repos/phpseclib/phpseclib/zipball/c204a5ccb49ae1d1ae1cfebacc7cceb45e57a61c",
+                "reference": "c204a5ccb49ae1d1ae1cfebacc7cceb45e57a61c",
                 "shasum": ""
             },
             "require": {
@@ -504,7 +504,7 @@
                 "ext-libsodium": "SSH2/SFTP can make use of some algorithms provided by the libsodium-php extension.",
                 "ext-openssl": "Install the OpenSSL extension in order to speed up a wide variety of cryptographic operations."
             },
-            "time": "2023-10-31T14:51:13+00:00",
+            "time": "2023-11-27T11:14:03+00:00",
             "default-branch": true,
             "type": "library",
             "installation-source": "dist",
@@ -812,8 +812,8 @@
         },
         {
             "name": "symfony/deprecation-contracts",
-            "version": "v3.3.0",
-            "version_normalized": "3.3.0.0",
+            "version": "v3.4.0",
+            "version_normalized": "3.4.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/deprecation-contracts.git",
@@ -862,7 +862,7 @@
             "description": "A generic function and convention to trigger deprecation notices",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/deprecation-contracts/tree/v3.3.0"
+                "source": "https://github.com/symfony/deprecation-contracts/tree/v3.4.0"
             },
             "funding": [
                 {
