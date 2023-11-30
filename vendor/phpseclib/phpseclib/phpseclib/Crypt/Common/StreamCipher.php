@@ -12,8 +12,6 @@
  * @link      http://phpseclib.sourceforge.net
  */
 
-declare(strict_types=1);
-
 namespace phpseclib3\Crypt\Common;
 
 /**
@@ -37,7 +35,7 @@ abstract class StreamCipher extends SymmetricKey
      * Default Constructor.
      *
      * @see \phpseclib3\Crypt\Common\SymmetricKey::__construct()
-     * @return StreamCipher
+     * @return \phpseclib3\Crypt\Common\StreamCipher
      */
     public function __construct()
     {
@@ -46,8 +44,10 @@ abstract class StreamCipher extends SymmetricKey
 
     /**
      * Stream ciphers not use an IV
+     *
+     * @return bool
      */
-    public function usesIV(): bool
+    public function usesIV()
     {
         return false;
     }

@@ -3,7 +3,7 @@
         'name' => 'otpless/otpless-auth-sdk',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '863b3be85b559fd24cbec7af203c7d97dc0f522b',
+        'reference' => 'c9139ca09b8ffc1e72bc27b3a2b1d0765e547b03',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,14 +11,12 @@
     ),
     'versions' => array(
         'firebase/php-jwt' => array(
-            'pretty_version' => 'dev-main',
-            'version' => 'dev-main',
-            'reference' => '79cb30b729a22931b2fbd6b53f20629a83031ba9',
+            'pretty_version' => 'v5.5.1',
+            'version' => '5.5.1.0',
+            'reference' => '83b609028194aa042ea33b5af2d41a7427de80e6',
             'type' => 'library',
             'install_path' => __DIR__ . '/../firebase/php-jwt',
-            'aliases' => array(
-                0 => '9999999-dev',
-            ),
+            'aliases' => array(),
             'dev_requirement' => false,
         ),
         'guzzlehttp/guzzle' => array(
@@ -51,7 +49,7 @@
         'otpless/otpless-auth-sdk' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '863b3be85b559fd24cbec7af203c7d97dc0f522b',
+            'reference' => 'c9139ca09b8ffc1e72bc27b3a2b1d0765e547b03',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -66,15 +64,22 @@
             'aliases' => array(),
             'dev_requirement' => false,
         ),
+        'paragonie/random_compat' => array(
+            'pretty_version' => 'v9.99.100',
+            'version' => '9.99.100.0',
+            'reference' => '996434e5492cb4c3edcb9168db6fbb1359ef965a',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../paragonie/random_compat',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
         'phpseclib/phpseclib' => array(
-            'pretty_version' => 'dev-master',
-            'version' => 'dev-master',
-            'reference' => 'c204a5ccb49ae1d1ae1cfebacc7cceb45e57a61c',
+            'pretty_version' => '3.0.34',
+            'version' => '3.0.34.0',
+            'reference' => '56c79f16a6ae17e42089c06a2144467acc35348a',
             'type' => 'library',
             'install_path' => __DIR__ . '/../phpseclib/phpseclib',
-            'aliases' => array(
-                0 => '9999999-dev',
-            ),
+            'aliases' => array(),
             'dev_requirement' => false,
         ),
         'psr/http-client' => array(
