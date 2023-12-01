@@ -2,7 +2,7 @@
 
 namespace Otpless;
 
-require '../vendor/autoload.php';
+// require '../vendor/autoload.php';
 
 use Exception;
 use Otpless\OIDCMasterConfig;
@@ -142,8 +142,7 @@ class OTPLessAuth
             $queryString = http_build_query($queryParams);
             $finalURL = $baseURL . '?' . $queryString;
             $response = $client->get($finalURL);
-
-            $response = $client->get($finalURL);
+            
             $responseBody = $response->getBody()->getContents();
             $responseData = json_decode($responseBody, true);
 
