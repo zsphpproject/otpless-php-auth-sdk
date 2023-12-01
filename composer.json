@@ -19,7 +19,7 @@
 
     "require": {
         "guzzlehttp/guzzle": "^7.0",
-        "firebase/php-jwt": "^5.0",
+        "firebase/php-jwt": "^v6.8",
         "phpseclib/phpseclib": "^3.0"
     },
     "require-dev": {},
